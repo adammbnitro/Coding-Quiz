@@ -15,6 +15,9 @@ let initialElement = document.getElementById("initials");
 let feedbackElement = document.getElementById("feedback");
 
 
+let sfxCorrect = new Audio("assets/sfx/correct.wav");
+let sfxIncorrect = new Audio("assets/sfx/incorrect.wav");
+
 
 // Creating the functions to make the quiz
 function getQuestion(){
@@ -41,10 +44,6 @@ function getQuestion(){
     })
 }
 
-function questionClick(){
-    
-}
-
 function startQuiz(){
     // Upon clicking start, the initial instructions start screen will be hidden to show the quiz content, using CSS display: none;
     let startScreenElement = document.getElementById("start-screen");
@@ -54,6 +53,38 @@ function startQuiz(){
     timerID = setInterval(clockTick, 1000)
 
     getQuestion();
+}
+
+function questionClick(){
+    if(this.value !== questions[currentQuestionIndex].answer){
+        time -= 10;
+
+    if(time < 0){
+        time = 0;
+    }
+
+    timerElement.textContent = time;
+    sfxIncorrect.play();
+    feedbackElement.textContent = "Wrong";
+    
+    } else {
+        sfxCorrect.play();
+        feedbackElement.textContent = "Correct!";
+    }
+
+    feedbackElement.setAttribute("class", "feedback");
+
+    setTimeout(function(){
+        feedbackElement.setAttribute("class", "feedback hide")
+    }, 1000);
+
+    currentQuestionIndex++;
+
+    if(currentQuestionIndex === questions.length) {
+        quizEnd();
+    } else {
+        getQuestion();
+    }
 }
 
 function quizEnd(){
@@ -80,11 +111,26 @@ function clockTick(){
 }
 
 function saveHighScore(){
+    let initials = initialElement.value.trim();
+    console.log(initials);
     
+    if(initials !== ""){
+        let highScores = JSON.parse(localStorage.getItem("highscores")) || [];
+        let newScore = {
+            score: time,
+            initials: initials
+        }
+
+        highScores.push(newScore);
+        localStorage.setItem("highscores", JSON.stringify(highScores));
+        window.location.href = "highscores.html";
+    }
 }
 
 function checkForEnter(event){
-    
+    if(event.key === "Enter"){
+        saveHighScore();
+    }
 }
 
 startButton.addEventListener("click", startQuiz);
